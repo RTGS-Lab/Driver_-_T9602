@@ -105,18 +105,24 @@ String T9602::getData(time_t time)
 
 		Wire.beginTransmission(adr);
 		Wire.write(0x00);
-		Wire.endTransmission();
+		int error = Wire.endTransmission();
 
-		Wire.requestFrom(adr, 4);
-		for(int i = 0; i < 4; i++) { //Read in raw data
-			data[i] = Wire.read();
+		if(error == 0) { //Proceed if there is no error
+			Wire.requestFrom(adr, 4);
+			for(int i = 0; i < 4; i++) { //Read in raw data
+				data[i] = Wire.read();
+			}
+
+			// Convert RH to percent
+			rh = (float)((((data[0] & 0x3F ) << 8) + data[1]) / 16384.0) * 100.0; 
+			// Convert Temp
+			temp = (float)((unsigned((data[2] * 64)) + unsigned((data[3] >> 2 ))) / 16384.0) * 165.0 - 40.0; 
+			output = output + "\"Temperature\":" + String(temp) + ",\"Humidity\":" + String(rh) + ",";
 		}
-
-		// Convert RH to percent
-		rh = (float)((((data[0] & 0x3F ) << 8) + data[1]) / 16384.0) * 100.0; 
-		// Convert Temp
-		temp = (float)((unsigned((data[2] * 64)) + unsigned((data[3] >> 2 ))) / 16384.0) * 165.0 - 40.0; 
-		output = output + "\"Temperature\":" + String(temp) + ",\"Humidity\":" + String(rh) + ",";
+		else { //Otherwise return nulls and throw error 
+			throwError(I2C_SENSOR_COM_FAIL | talonPortErrorCode | (error << 8)); //Error subtype = I2C error
+			output = output + "\"Temperature\":null,\"Humidity\":null,";
+		}
 	}
 		// ret = presSensor.measureTempOnce(temperatureDPS368, oversampling); //Measure temp
 	// 	if(ret == 0) { //If no error in read
