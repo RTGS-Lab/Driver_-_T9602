@@ -1,8 +1,8 @@
 #ifndef T9602_h
 #define T9602_h
 
-#include "DPS368-Library-Arduino/src/Dps368.h"
-#include "Adafruit_SHT31/src/Adafruit_SHT31.h"
+#include "../../DPS368-Library-Arduino/src/Dps368.h"
+#include "../../Adafruit_SHT31/src/Adafruit_SHT31.h"
 #include <Sensor.h>
 
 class T9602: public Sensor
